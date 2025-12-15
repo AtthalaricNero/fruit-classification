@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Fruit Classifier</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <!-- Google Fonts (Poppins) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 20px 0;
+      }
+
+      .main-card {
+        border: none;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        background: #ffffff;
+        overflow: hidden;
+      }
+
+      .card-header-custom {
+        background: transparent;
+        padding: 30px 30px 10px 30px;
+        border-bottom: none;
+        text-align: center;
+      }
+
+      .card-header-custom h4 {
+        font-weight: 600;
+        color: #2d3436;
+        margin-bottom: 5px;
+      }
+
+      .card-header-custom p {
+        color: #636e72;
+        font-size: 0.9rem;
+      }
+
+      .card-body {
+        padding: 30px;
+      }
+
+      .upload-box {
+        border: 2px dashed #dfe6e9;
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        background-color: #fdfdfd;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .upload-box:hover {
+        border-color: #74b9ff;
+        background-color: #f0f8ff;
+      }
+
+      .form-control[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .btn-predict {
+        background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 20px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+      }
+
+      .btn-predict:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+        background: linear-gradient(45deg, #5f4dd0, #9189f0);
+      }
+
+      .result-container {
+        background-color: #f8f9fa;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 30px;
+        animation: fadeIn 0.5s ease-in-out;
+      }
+
+      .prediction-badge {
+        background-color: #d1fae5;
+        color: #065f46;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+        margin-bottom: 10px;
+      }
+
+      .prediction-text {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2d3436;
+        margin: 0;
+      }
+
+      .confidence-container {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e1e8ed;
+      }
+
+      .confidence-bar {
+        height: 8px;
+        border-radius: 10px;
+        background-color: #e9ecef;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+
+      .confidence-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.8s ease-in-out;
+        background: linear-gradient(90deg, #10b981, #34d399);
+      }
+
+      .top-predictions {
+        margin-top: 15px;
+      }
+
+      .prediction-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        margin-bottom: 8px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        font-size: 0.9rem;
+      }
+
+      .prediction-item .name {
+        font-weight: 500;
+        color: #2d3436;
+      }
+
+      .prediction-item .percentage {
+        font-weight: 600;
+        color: #6c5ce7;
+      }
+
+      .prediction-item .bar-small {
+        flex: 1;
+        height: 6px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        margin: 0 10px;
+        overflow: hidden;
+      }
+
+      .prediction-item .bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #a29bfe, #6c5ce7);
+        border-radius: 10px;
+      }
+
+      .img-preview {
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        max-height: 250px;
+        object-fit: cover;
+        transition: transform 0.3s;
+      }
+
+      .img-preview:hover {
+        transform: scale(1.02);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-md-5">
+          <div class="card main-card">
+            <div class="card-header-custom">
+              <div class="mb-3">
+                <i
+                  class="bi bi-flower1"
+                  style="font-size: 3rem; color: #6c5ce7"
+                ></i>
+              </div>
+              <h4>Fruit Classifier</h4>
+              <p>Upload gambar buah untuk dideteksi oleh AI</p>
+            </div>
+
+            <div class="card-body">
+              <form method="post" enctype="multipart/form-data" id="uploadForm">
+                <div class="mb-4">
+                  <div class="upload-box" id="uploadBox">
+                    <i
+                      class="bi bi-cloud-arrow-up"
+                      style="font-size: 2rem; color: #b2bec3"
+                    ></i>
+                    <p class="mb-0 mt-2 text-muted">
+                      Klik atau drag gambar di sini
+                    </p>
+                    <input
+                      class="form-control"
+                      type="file"
+                      name="file"
+                      id="fileInput"
+                      accept="image/*"
+                      required
+                    />
+                  </div>
+                  <div
+                    id="fileNameDisplay"
+                    class="text-center mt-2 text-muted small"
+                  ></div>
+                </div>
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-predict w-100 text-white"
+                  id="submitBtn"
+                >
+                  <i class="bi bi-magic me-2"></i> Prediksi Gambar
+                </button>
+              </form>
+
+              {% if msg %}
+              <div
+                class="alert alert-warning mt-4 rounded-3 border-0 shadow-sm"
+              >
+                <i class="bi bi-exclamation-triangle me-2"></i> {{ msg }}
+              </div>
+              {% endif %}
+
+              {% if img_data and prediction %}
+              <div class="result-container text-center">
+                <div class="mb-3">
+                  <img src="{{ img_data }}" class="img-fluid img-preview" alt="Uploaded fruit" />
+                </div>
+
+                <div class="prediction-badge">
+                  <i class="bi bi-check-circle-fill me-1"></i> Hasil Prediksi
+                </div>
+                <h2 class="prediction-text">{{ prediction }}</h2>
+
+                {% if confidence %}
+                <div class="confidence-container">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span style="font-weight: 600; color: #636e72;">
+                      <i class="bi bi-graph-up me-1"></i> Confidence Score
+                    </span>
+                    <span style="font-size: 1.3rem; font-weight: 700; color: #10b981;">
+                      {{ "%.2f" | format(confidence) }}%
+                    </span>
+                  </div>
+                  <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: {{ confidence }}%"></div>
+                  </div>
+                </div>
+
+                {% if top_predictions %}
+                <div class="top-predictions text-start">
+                  <h6 style="font-weight: 600; color: #636e72; margin-bottom: 12px;">
+                    <i class="bi bi-trophy me-1"></i> Top 3 Prediksi
+                  </h6>
+                  {% for pred in top_predictions %}
+                  <div class="prediction-item">
+                    <span class="name">{{ loop.index }}. {{ pred.name }}</span>
+                    <div class="bar-small">
+                      <div class="bar-fill" style="width: {{ pred.probability }}%"></div>
+                    </div>
+                    <span class="percentage">{{ "%.1f" | format(pred.probability) }}%</span>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% endif %}
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="text-center mt-4 text-muted small">
+            &copy; 2025 Fruit Classification Project
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Ambil elemen
+      let fileInput = document.getElementById('fileInput');
+      const uploadBox = document.getElementById('uploadBox');
+      const fileNameDisplay = document.getElementById('fileNameDisplay');
+      const uploadForm = document.getElementById('uploadForm');
+      const submitBtn = document.getElementById('submitBtn');
+      
+      // Simpan file yang dipilih
+      let selectedFile = null;
+
+      // Fungsi untuk handle perubahan file
+      function handleFileChange(e) {
+        const input = e.target;
+        if (input.files && input.files[0]) {
+          selectedFile = input.files[0];
+          const fileName = selectedFile.name;
+          
+          // Tampilkan nama file
+          fileNameDisplay.innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i> File terpilih: <strong>${fileName}</strong>`;
+          
+          // Buat preview gambar
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            // Ganti konten upload box dengan preview gambar
+            uploadBox.innerHTML = `
+              <div style="position: relative;">
+                <img src="${event.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 12px; object-fit: contain;" alt="Preview">
+              </div>
+              <p class="mb-0 mt-3 text-success">
+                <i class="bi bi-check-circle-fill me-1"></i>
+                <strong>${fileName}</strong>
+              </p>
+              <p class="mb-0 mt-2 text-muted small">Klik untuk mengganti gambar</p>
+              <input class="form-control" type="file" name="file" id="fileInput" accept="image/*">
+            `;
+            
+            // Re-attach event listener untuk input file yang baru
+            fileInput = document.getElementById('fileInput');
+            fileInput.addEventListener('change', handleFileChange);
+            
+            // Transfer file ke input baru menggunakan DataTransfer
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(selectedFile);
+            fileInput.files = dataTransfer.files;
+          };
+          reader.readAsDataURL(selectedFile);
+        }
+      }
+
+      // Event listener untuk file input pertama kali
+      fileInput.addEventListener('change', handleFileChange);
+
+      // Event listener untuk form submit
+      uploadForm.addEventListener('submit', function(e) {
+        // Cek apakah ada file yang dipilih
+        const currentFileInput = document.getElementById('fileInput');
+        if (!currentFileInput.files || currentFileInput.files.length === 0) {
+          e.preventDefault();
+          alert('Silakan pilih file gambar terlebih dahulu!');
+          return;
+        }
+        
+        // Ubah tampilan tombol
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sedang menganalisis...';
+        submitBtn.disabled = true;
+      });
+    </script>
+  </body>
+</html>
